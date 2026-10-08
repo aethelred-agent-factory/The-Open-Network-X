@@ -1,0 +1,114 @@
+name: Milestones
+
+# Mirrors MILESTONES.md into GitHub's Milestones page and files PRs there.
+#  - PRs: a PR tagged [M4] in its title, "Milestone: M4" in its description,
+#    or labelled "M4" / "milestone: M4" is filed under the M4 milestone, which
+#    is created from MILESTONES.md if it does not exist yet.
+#  - main / manual: create or update every milestone from the "At a glance"
+#    table (Done rows are closed). A manual run can also backfill the merged
+#    PRs each milestone's heading lists, e.g. "(PRs #4–#11, ...)".
+#  - PRs touching this machinery: unit tests, and MILESTONES.md must parse.
+# Logic and tag rules: scripts/milestones.py.
+
+on:
+  # pull_request_target so PRs from forks get filed too (a pull_request token
+  # is read-only for forks). This is safe here because the job never runs PR
+  # code: checkout stays on the base branch, and the PR's title, body, and
+  # labels are read from the event file as data, never interpolated.
+  pull_request_target:  # zizmor: ignore[dangerous-triggers]
+    types: [opened, edited, reopened, labeled, unlabeled]
+  pull_request:
+    branches: [main]
+    paths:
+      - MILESTONES.md
+      - scripts/milestones.py
+      - scripts/test_milestones.py
+      - .github/workflows/milestones.yml
+  push:
+    branches: [main]
+    paths:
+      - MILESTONES.md
+      - scripts/milestones.py
+      - .github/workflows/milestones.yml
+  workflow_dispatch:
+    inputs:
+      backfill:
+        description: File merged PRs listed in MILESTONES.md headings that have no milestone yet
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Milestone tooling checks
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    concurrency:
+      group: milestones-check-${{ github.ref }}
+      cancel-in-progress: true
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Unit tests
+        run: python3 -m unittest discover -s scripts -p 'test_milestones.py' -v
+
+      - name: MILESTONES.md parses
+        run: python3 scripts/milestones.py table
+
+  assign:
+    name: File PR under its milestone
+    if: github.event_name == 'pull_request_target'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    concurrency:
+      group: milestones-pr-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    permissions:
+      contents: read  # read MILESTONES.md and the script from the base branch
+      issues: write  # create/update milestones; set a PR's milestone (issues API)
+      pull-requests: write  # same PATCH, when GitHub authorizes it as a PR edit
+    steps:
+      - name: Check out base branch
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: File PR
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 scripts/milestones.py assign
+
+  sync:
+    name: Sync milestones from MILESTONES.md
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    concurrency:
+      group: milestones-sync
+      cancel-in-progress: false
+    permissions:
+      contents: read  # read MILESTONES.md and the script
+      issues: write  # create/update milestones; set backfilled PRs' milestone
+      pull-requests: write  # read merged state of backfilled PRs; same PATCH as a PR edit
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Sync
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          BACKFILL: ${{ github.event_name == 'workflow_dispatch' && inputs.backfill }}
+        run: |
+          if [ "$BACKFILL" = "true" ]; then
+            python3 scripts/milestones.py sync --backfill
+          else
+            python3 scripts/milestones.py sync
+          fi

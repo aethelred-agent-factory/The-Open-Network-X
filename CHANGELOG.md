@@ -18,6 +18,9 @@ headings Added, Changed, Deprecated, Removed, Fixed, Security. The
 
 ### Added
 
+- Milestones workflow (`scripts/milestones.py`): mirrors the `MILESTONES.md`
+  table into GitHub milestones and files PRs tagged `[M4]`,
+  `Milestone: M4`, or label `M4` under the matching milestone.
 - `MILESTONES.md`: completed milestones M0–M3, exit criteria for M4–M7,
   and the maintenance gate that defines `1.0.0`.
 

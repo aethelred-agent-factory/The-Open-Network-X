@@ -28,6 +28,12 @@ notes. This file is the forward plan and the finish line.
   you stop developing and start maintaining.
 - **Tick boxes in the same PR that earns them.** If you can't link the
   evidence, leave the box unticked.
+- **Tag each PR with the milestone it works toward.** Put `[M4]` in the
+  title, a line `Milestone: M4` in the description, or the label `M4`. The
+  Milestones workflow then files the PR under that milestone on GitHub's
+  Milestones page, where each milestone shows its progress. Those GitHub
+  milestones are generated from the table below, so rename, add, or close a
+  milestone by editing the table here, not on GitHub.
 - **New ideas go to the [Parking lot](#parking-lot-post-10-or-undecided)**
   unless they block the current milestone. Most "while I'm in here" work
   belongs there.

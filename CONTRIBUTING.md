@@ -138,8 +138,10 @@ consensus-critical code.
 `MILESTONES.md` holds the prioritized, up-for-grabs work: each milestone's
 exit criteria are the checklist, and `ROADMAP.md` keeps the per-PR
 changelog. Before starting something, check for an open PR or issue
-already claiming it. Tick a criterion in the same PR that earns it, with a
-link to the evidence. Work that isn't in the current milestone goes to
+already claiming it. Tag the PR with its milestone (`[M4]` in the title, a
+`Milestone: M4` line in the description, or the label `M4`) so the
+Milestones workflow files it on GitHub's Milestones page. Tick a criterion
+in the same PR that earns it, with a link to the evidence. Work that isn't in the current milestone goes to
 `MILESTONES.md`'s parking lot rather than into the milestone.
 
 ## Versioning and releases

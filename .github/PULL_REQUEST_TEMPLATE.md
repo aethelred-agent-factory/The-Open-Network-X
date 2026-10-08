@@ -1,3 +1,5 @@
+Milestone: <!-- M4, M5, ... from MILESTONES.md; the Milestones workflow files the PR under it -->
+
 ## Specification and decision record
 - [ ] I identified the applicable `docs/specification/` section.
 - [ ] If no specification existed, this PR adds it before implementation.
